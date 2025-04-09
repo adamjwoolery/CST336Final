@@ -18,6 +18,7 @@
   "homepage": "https://github.com/Andy-Paa/CST336Final#readme",
   "description": "",
   "dependencies": {
+    "amadeus": "^11.0.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "node": "^23.11.0",
