@@ -1,0 +1,25 @@
+{
+  "name": "cst336final",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andy-Paa/CST336Final.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Andy-Paa/CST336Final/issues"
+  },
+  "homepage": "https://github.com/Andy-Paa/CST336Final#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "node": "^23.11.0",
+    "node-fetch": "^3.3.2"
+  }
+}
