@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Flight Results</title>
+</head>
+<body>
+  <h1>Flight Results</h1>
+
+  <% if (flights.length > 0) { %>
+    <% flights.forEach(flight => { %>
+      <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+        <p><strong>Price:</strong> <%= flight.price.total %> <%= flight.price.currency %></p>
+        <p><strong>From:</strong> <%= flight.itineraries[0].segments[0].departure.iataCode %></p>
+        <p><strong>To:</strong> <%= flight.itineraries[0].segments[0].arrival.iataCode %></p>
+        <p><strong>Departure Time:</strong> <%= flight.itineraries[0].segments[0].departure.at %></p>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p>No flights found.</p>
+  <% } %>
+
+  <a href="/">Search Again</a>
+</body>
+</html>
