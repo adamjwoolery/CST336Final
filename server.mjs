@@ -48,7 +48,7 @@ app.post('/search', async (req, res) => {
         max: 5
       });
 
-      // 👇 Filter manually to enforce strict origin/destination
+      //  Filter manually to enforce strict origin/destination
     const filteredFlights = response.data.filter(flight => {
         const segments = flight.itineraries[0].segments;
         const firstSegment = segments[0];
