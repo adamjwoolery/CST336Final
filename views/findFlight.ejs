@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Flight Search</title>
+</head>
+<body>
+  <h1>Find Flights</h1>
+
+  <form action="/search" method="POST">
+    <!-- Origin -->
+    <label>Origin Airport Code (e.g., JFK):</label>
+    <input type="text" name="origin" required><br><br>
+
+    <!-- Destination -->
+    <label>Destination Airport Code (e.g., LAX):</label>
+    <input type="text" name="destination" required><br><br>
+
+    <!-- Departure Date -->
+    <label>Departure Date (YYYY-MM-DD):</label>
+    <input type="date" name="date" required><br><br>
+
+    <!-- Return Date -->
+    <label>Return Date (optional):</label>
+    <input type="date" name="returnDate"><br><br>
+
+    <!-- Travel Class -->
+    <label>Travel Class:</label>
+    <select name="travelClass">
+      <option value="ECONOMY">Economy</option>
+      <option value="PREMIUM_ECONOMY">Premium Economy</option>
+      <option value="BUSINESS">Business</option>
+      <option value="FIRST">First</option>
+    </select><br><br>
+
+    <!-- Max Price -->
+    <label>Maximum Price (per traveler):</label>
+    <input type="number" name="maxPrice" min="1" placeholder="e.g., 500"><br><br>
+
+    <!-- Currency Code -->
+    <label>Currency Code:</label>
+    <select name="currency">
+        <option value="USD" selected>USD - US Dollar</option>
+        <option value="EUR">EUR - Euro</option>
+        <option value="GBP">GBP - British Pound</option>
+        <option value="CAD">CAD - Canadian Dollar</option>
+        <option value="AUD">AUD - Australian Dollar</option>
+        <option value="JPY">JPY - Japanese Yen</option>
+        <option value="CNY">CNY - Chinese Yuan</option>
+        <option value="MXN">MXN - Mexican Peso</option>
+    </select><br><br>
+
+
+    <!-- Non-Stop Checkbox -->
+    <label>
+      <input type="checkbox" name="nonStop">
+      Non-Stop Flights Only
+    </label><br><br>
+
+    <button type="submit">Search Flights</button>
+  </form>
+
+</body>
+</html>
