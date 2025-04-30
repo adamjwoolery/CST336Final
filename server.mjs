@@ -103,24 +103,20 @@ app.post('/deleteFlight', async (req, res) => {
 app.post('/login', async (req, res) => {
     let username = req.body.username;
     let password = req.body.password;
-
-    let hashedPassword = "";
-    //let hashedPassword = "$2b$10$MV0mXcP/DBVu270RvRVTG.mBJUGRwVkwe9gVvatzg8zus9fow3WIi";
+    let db_password = "";
 
     let sql = `SELECT *
                FROM admin
                WHERE username = ?`;
      const [rows] = await conn.query(sql, [username]); 
      if (rows.length > 0) { //username was found!
-        hashedPassword = rows[0].password;
+        db_password = rows[0].password;
      }          
 
-    const match = await bcrypt.compare(password, hashedPassword);
-
-    if (match) {
+    if (password == db_password) {
         req.session.userAuthenticated = true;
         req.session.fullName = rows[0].firstName + " " + rows[0].lastName;
-        res.render('home.ejs'); //whatever page is home here
+        res.render('index.ejs'); //whatever page is home here
     } else {
         res.render('login.ejs', {"error":"Wrong credentials!"})
     }
@@ -131,6 +127,14 @@ app.get('/logout', isAuthenticated, (req, res) => {
     res.render('login.ejs')
  });
 
+app.post('/register', async (req, res) => {
+  let username = req.body.username;
+  let password = req.body.password;
+  let sql = `INSERT INTO users (username, password) VALUES (?, ?)`;
+  let params = [username, password];
+  await conn.query(sql, params);
+  res.render('login.ejs');
+});
 
 app.get('/accounts', isAdmin, async(req, res) => {
   let sql = `SELECT * FROM users`;
@@ -158,7 +162,7 @@ function isAuthenticated(req, res, next){
         next();
     }
     else{
-        res.redirect("/");//wathever page is home here
+        res.redirect("/index.ejs");//wathever page is home here
     }
 }
 
@@ -167,6 +171,6 @@ function isAdmin(req, res, next){
         next();
     }
     else{
-        res.redirect("/"); //wathever page is home here
+        res.redirect("/index.ejs"); //wathever page is home here
     }
 } 
