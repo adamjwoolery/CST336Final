@@ -57,7 +57,7 @@ app.post('/search', async (req, res) => {
         return firstSegment.departure.iataCode === origin &&
                lastSegment.arrival.iataCode === destination;
       });
-  
+      console.log(response.data);
       res.render('results', { flights: response.data });
     } catch (error) {
       console.error(error);
