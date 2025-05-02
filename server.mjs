@@ -1,8 +1,9 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fetch from 'node-fetch';
 import Amadeus from 'amadeus';
+import mysql from 'mysql2/promise';
+import session from 'express-session';
 
 const app = express();
 
@@ -23,7 +24,6 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     waitForConnections: true
 });
-const conn = await pool.getConnection();
 
 app.set('trust proxy', 1) // trust first proxy
 app.use(session({
@@ -33,8 +33,16 @@ app.use(session({
 }))
 
 app.get('/', (req, res) => {
-    res.render('index', { title: 'HOME', message: 'THIS IS HOME PAGE OF "336Final"' });
+    // res.render('index', { title: 'HOME', message: 'THIS IS HOME PAGE OF "336Final"' });
+    res.render('login.ejs', { title: 'Login', message: 'Login to your account' });
 });
+
+app.get('/home', (req, res) => {
+    res.render('index', { title: 'HOME', message: 'THIS IS HOME PAGE OF "336Final"' });
+    // res.render('login.ejs', { title: 'Login', message: 'Login to your account' });
+});
+
+
 app.get('/findFlight', (req, res) => {
     res.render('findFlight.ejs');
 });
@@ -89,14 +97,14 @@ app.post('/saveFlight', async (req, res) => {
 
 app.get('/savedFlights', async (req, res) => {
     let sql = `SELECT * FROM flights`;
-    const [flights] = await conn.query(sql, params);
+    const [flights] = await pool.query(sql); // Use pool.query directly
     res.render('savedFlights.ejs', { flights });
 });
 
 app.post('/deleteFlight', async (req, res) => {
     const flightId = req.body.flightId;
     let sql = `DELETE FROM flights WHERE flightId = ?`;
-    await conn.query(sql, [flightId]);
+    await pool.query(sql, [flightId]); // Use pool.query directly
     res.send('Flight deleted successfully!');
 });
 
@@ -106,9 +114,9 @@ app.post('/login', async (req, res) => {
     let db_password = "";
 
     let sql = `SELECT *
-               FROM admin
+               FROM users
                WHERE username = ?`;
-     const [rows] = await conn.query(sql, [username]); 
+     const [rows] = await pool.query(sql, [username]); 
      if (rows.length > 0) { //username was found!
         db_password = rows[0].password;
      }          
@@ -116,11 +124,25 @@ app.post('/login', async (req, res) => {
     if (password == db_password) {
         req.session.userAuthenticated = true;
         req.session.fullName = rows[0].firstName + " " + rows[0].lastName;
-        res.render('index.ejs'); //whatever page is home here
+        res.redirect('/home'); //whatever page is home here
     } else {
         res.render('login.ejs', {"error":"Wrong credentials!"})
     }
  });
+
+app.get('/signUp', async(req, res) => {
+    res.render('signUp.ejs');  
+});
+
+app.post('/signUp', async(req, res) => {
+    let username = req.body.username;
+    let password = req.body.password;
+    let sql = `INSERT INTO users (username, password) VALUES (?, ?)`;
+    let params = [username, password];
+    await pool.query(sql, params);
+    res.render('login.ejs', {"error":"Account created!"});  
+});
+
 
 app.get('/logout', isAuthenticated, (req, res) => {
     req.session.destroy();
@@ -132,13 +154,13 @@ app.post('/register', async (req, res) => {
   let password = req.body.password;
   let sql = `INSERT INTO users (username, password) VALUES (?, ?)`;
   let params = [username, password];
-  await conn.query(sql, params);
+  await pool.query(sql, params);
   res.render('login.ejs');
 });
 
 app.get('/accounts', isAdmin, async(req, res) => {
   let sql = `SELECT * FROM users`;
-  const [users] = await conn.query(sql);
+  const [users] = await pool.query(sql);
   res.render("accounts.ejs", { users });
 });
 
@@ -146,7 +168,7 @@ app.get('/deleteAccount', isAdmin, async(req, res) => {
     let userId = req.query.userId;
     let sql = `DELETE FROM users WHERE userId = ?`;
     let sqlParams = [userId];
-    const [rows] = await conn.query(sql, sqlParams);
+    const [rows] = await pool.query(sql, sqlParams);
     console.log(rows);
     res.redirect("/accounts");
 });
@@ -173,4 +195,4 @@ function isAdmin(req, res, next){
     else{
         res.redirect("/index.ejs"); //wathever page is home here
     }
-} 
+}
