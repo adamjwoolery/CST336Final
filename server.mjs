@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
 import Amadeus from 'amadeus';
+import { Console } from 'console';
 
 const app = express();
 
@@ -56,9 +57,11 @@ app.post('/search', async (req, res) => {
   
         return firstSegment.departure.iataCode === origin &&
                lastSegment.arrival.iataCode === destination;
-      });
+    });
   
-      res.render('results', { flights: response.data });
+    res.render('results', { flights: response.data, searchParams: req.body });
+      console.log('Request Body:', req.body);
+      console.log('Response Data:', response.data);
     } catch (error) {
       console.error(error);
       res.send('Error fetching flights.');

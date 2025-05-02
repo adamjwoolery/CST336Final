@@ -5,23 +5,6 @@ body {
     background: #f0f0f0;
 }
 
-header nav {
-    background-color: #54626b;
-    padding: 10px;
-    text-align: center;
-}
-
-header nav a {
-    background-color: rgb(120, 113, 104);
-    color: white;
-    text-decoration: none;
-    margin: 0 15px;
-}
-
-header nav a:hover {
-    background-color: #404346;
-}
-
 main {
     padding: 2rem;
     display: flex;
