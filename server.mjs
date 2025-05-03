@@ -2,8 +2,10 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Amadeus from 'amadeus';
+import { Console } from 'console';
 import mysql from 'mysql2/promise';
 import session from 'express-session';
+
 
 const app = express();
 
@@ -55,38 +57,38 @@ const amadeus = new Amadeus({
 
 // Handle form submit
 app.post('/search', async (req, res) => {
-    const { origin, destination, date, returnDate, travelClass, maxPrice, currency, nonStop } = req.body;
-  
-    try {
-      const response = await amadeus.shopping.flightOffersSearch.get({
-        originLocationCode: origin,
-        destinationLocationCode: destination,
-        departureDate: date,
-        ...(returnDate && { returnDate }),          // only add if user filled it
-        ...(travelClass && { travelClass }),        // travel class (ECONOMY, BUSINESS, etc.)
-        ...(maxPrice && { maxPrice }),              // max price limit
-        ...(currency && { currencyCode: currency }),// currency code
-        ...(nonStop && { nonStop: true }),           // checkbox sends "on" if checked
-        adults: 1,
-        max: 5
-      });
+  const { origin, destination, date, returnDate, travelClass, maxPrice, currency, nonStop } = req.body;
 
-      //  Filter manually to enforce strict origin/destination
+  try {
+    const response = await amadeus.shopping.flightOffersSearch.get({
+      originLocationCode: origin,
+      destinationLocationCode: destination,
+      departureDate: date,
+      ...(returnDate && { returnDate }),
+      ...(travelClass && { travelClass }),
+      ...(maxPrice && { maxPrice }),
+      ...(currency && { currencyCode: currency }),
+      ...(nonStop && { nonStop: true }),
+      adults: 1,
+      max: 20
+    });
     const filteredFlights = response.data.filter(flight => {
-        const segments = flight.itineraries[0].segments;
-        const firstSegment = segments[0];
-        const lastSegment = segments[segments.length - 1];
-  
-        return firstSegment.departure.iataCode === origin &&
-               lastSegment.arrival.iataCode === destination;
-      });
-  
-      res.render('results', { flights: response.data });
-    } catch (error) {
-      console.error(error);
-      res.send('Error fetching flights.');
-    }
-  });
+      const segments = flight.itineraries[0].segments;
+      const firstSegment = segments[0];
+      const lastSegment = segments[segments.length - 1];
+
+      return firstSegment.departure.iataCode === origin &&
+             lastSegment.arrival.iataCode === destination;
+    });
+    res.render('results', { flights: filteredFlights, searchParams: req.body });
+
+    console.log('Request Body:', req.body);
+    console.log('Filtered Data:', filteredFlights);
+  } catch (error) {
+    console.error(error);
+    res.send('Error fetching flights.');
+  }
+});
 
 app.post('/saveFlight', async (req, res) => {
     const origin = req.body.origin;
@@ -185,7 +187,6 @@ app.get('/deleteAccount', isAdmin, async(req, res) => {
     console.log(rows);
     res.redirect("/accounts");
 });
-  
 
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);
