@@ -2,23 +2,52 @@
 <html>
 <head>
   <title>Flight Results</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
 </head>
 <body>
-  <h1>Flight Results</h1>
+  <div class="container py-5">
+    <h1 class="text-center mb-4">Flight Results</h1>
 
-  <% if (flights.length > 0) { %>
-    <% flights.forEach(flight => { %>
-      <div style="border:1px solid #ccc; padding:10px; margin:10px;">
-        <p><strong>Price:</strong> <%= flight.price.total %> <%= flight.price.currency %></p>
-        <p><strong>From:</strong> <%= flight.itineraries[0].segments[0].departure.iataCode %></p>
-        <p><strong>To:</strong> <%= flight.itineraries[0].segments[0].arrival.iataCode %></p>
-        <p><strong>Departure Time:</strong> <%= flight.itineraries[0].segments[0].departure.at %></p>
-      </div>
-    <% }) %>
-  <% } else { %>
-    <p>No flights found.</p>
-  <% } %>
+    <% if (flights.length > 0) { %>
+      <% flights.forEach(flight => { %>
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Flight Details</h5>
+            <p><strong>Price:</strong> <%= flight.price.total %> <%= flight.price.currency %></p>
+            <p><strong>From:</strong> <%= flight.itineraries[0].segments[0].departure.iataCode %></p>
+            <p><strong>To:</strong> <%= flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode %></p>
+            <p><strong>Departure Time:</strong> 
+              <%= new Date(flight.itineraries[0].segments[0].departure.at).toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: true 
+              }) %>
+            </p>
+            <p><strong>Arrival Time:</strong> 
+              <%= new Date(flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at).toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: true 
+              }) %>
+            </p>
+            <p><strong>Flight Number:</strong> <%= flight.itineraries[0].segments[0].number %></p>
+            <p><strong>Travel Class:</strong> <%= flight.travelerPricings[0].fareDetailsBySegment[0].cabin %></p>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p class="text-center">No flights found.</p>
+    <% } %>
 
-  <a href="/">Search Again</a>
+    <div class="text-center mt-4">
+      <a href="/" class="btn btn-primary">Search Again</a>
+    </div>
+  </div>
 </body>
 </html>
