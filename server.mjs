@@ -89,21 +89,34 @@ app.post('/search', async (req, res) => {
   });
 
 app.post('/saveFlight', async (req, res) => {
-    const flight = req.body.flight;
-    console.log(flight);
-    let sql = `INSERT INTO flights VALUES (?)`;
+    const origin = req.body.origin;
+    const destination = req.body.destination;
+    const date = req.body.date;
+    const returnDate = req.body.returnDate;
+    const travelClass = req.body.travelClass;
+    const price = req.body.price;
+    const currency = req.body.currency;
+    const flightNumber = req.body.flightNumber;
+    const userId = req.session.userId;
+    let sqlFilght = `INSERT INTO flights (origin, destination, date, returnDate, travelClass, price, currency, flightNumber) VALUES (?,?,?,?,?,?,?,?)`;
+    let paramsFlight = [origin, destination, date, returnDate, travelClass, price, currency, flightNumber];
+    await pool.query(sqlFilght, paramsFlight); // Use pool.query directly
+    let sql = `INSERT INTO userFlight VALUES (?,?)`;
+    let flightId = (await pool.query(`SELECT flightId FROM flights WHERE flightNumber = ?`, [flightNumber]))[0][0].flightId;
+    // console.log(flightId);
+    let params = [userId, flightId];
     res.send('Flight saved successfully!');
 });
 
 app.get('/savedFlights', async (req, res) => {
-    let sql = `SELECT * FROM flights`;
+    let sql = `SELECT * FROM flights NATURAL JOIN userFlight WHERE flightId = flightId`;
     const [flights] = await pool.query(sql); // Use pool.query directly
     res.render('savedFlights.ejs', { flights });
 });
 
 app.post('/deleteFlight', async (req, res) => {
     const flightId = req.body.flightId;
-    let sql = `DELETE FROM flights WHERE flightId = ?`;
+    let sql = `DELETE FROM userFlight WHERE flightId = ?`;
     await pool.query(sql, [flightId]); // Use pool.query directly
     res.send('Flight deleted successfully!');
 });
