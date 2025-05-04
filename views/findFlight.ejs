@@ -4,6 +4,7 @@
   <title>Flight Search</title>
 </head>
 <body>
+  <%- include('partials/header') %>
   <h1>Find Flights</h1>
 
   <form action="/search" method="POST">
@@ -58,6 +59,6 @@
 
     <button type="submit">Search Flights</button>
   </form>
-
+  <%- include('partials/footer') %>
 </body>
 </html>

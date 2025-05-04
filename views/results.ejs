@@ -5,6 +5,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
 </head>
 <body>
+  <%- include('partials/header') %>
   <div class="container py-5">
     <h1 class="text-center mb-4">Flight Results</h1>
 
@@ -36,18 +37,34 @@
                 hour12: true 
               }) %>
             </p>
-            <p><strong>Flight Number:</strong> <%= flight.itineraries[0].segments[0].number %></p>
+            <p><strong>Flight Number:</strong> <%= flight.itineraries[0].segments[0].carrierCode %><%= flight.itineraries[0].segments[0].number %></p>
+
             <p><strong>Travel Class:</strong> <%= flight.travelerPricings[0].fareDetailsBySegment[0].cabin %></p>
+            <!-- Save Flight Button -->
+            <form action="/saveFlight" method="POST">
+              <input type="hidden" name="origin" value="<%= flight.itineraries[0].segments[0].departure.iataCode %>">
+              <input type="hidden" name="destination" value="<%= flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode %>">
+              <input type="hidden" name="date" value="<%= flight.itineraries[0].segments[0].departure.at %>">
+              <input type="hidden" name="returnDate" value="<%= typeof flight.itineraries[1] !== 'undefined' ? flight.itineraries[1].segments[0].departure.at : '' %>">
+              <input type="hidden" name="travelClass" value="<%= flight.travelerPricings[0].fareDetailsBySegment[0].cabin %>">
+              <input type="hidden" name="price" value="<%= flight.price.total %>">
+              <input type="hidden" name="currency" value="<%= flight.price.currency %>">
+              <input type="hidden" name="flightNumber" value="<%= flight.itineraries[0].segments[0].carrierCode %><%= flight.itineraries[0].segments[0].number%>">
+              <button type="submit" class="btn btn-success mt-2">Save Flight</button>
+            </form>
           </div>
         </div>
       <% }) %>
     <% } else { %>
       <p class="text-center">No flights found.</p>
     <% } %>
+    
 
     <div class="text-center mt-4">
       <a href="/" class="btn btn-primary">Search Again</a>
     </div>
   </div>
+
+  <%- include('partials/footer') %>
 </body>
 </html>
