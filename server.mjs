@@ -68,8 +68,7 @@ app.post('/search', async (req, res) => {
         ...(currency && { currencyCode: currency }),// currency code
         ...(nonStop && { nonStop: true }),           // checkbox sends "on" if checked
         adults: 1,
-        max: 5,
-        includedFlightOfferOptions: 'ALL'
+        max: 5
       });
 
       const filteredFlights = response.data.filter(flight => {
