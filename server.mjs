@@ -68,11 +68,11 @@ app.post('/search', async (req, res) => {
         ...(currency && { currencyCode: currency }),// currency code
         ...(nonStop && { nonStop: true }),           // checkbox sends "on" if checked
         adults: 1,
-        max: 5
+        max: 5,
+        includedFlightOfferOptions: 'ALL'
       });
 
-      //  Filter manually to enforce strict origin/destination
-    const filteredFlights = response.data.filter(flight => {
+      const filteredFlights = response.data.filter(flight => {
         const segments = flight.itineraries[0].segments;
         const firstSegment = segments[0];
         const lastSegment = segments[segments.length - 1];
@@ -80,8 +80,22 @@ app.post('/search', async (req, res) => {
         return firstSegment.departure.iataCode === origin &&
                lastSegment.arrival.iataCode === destination;
       });
-      console.log(response.data);
-      res.render('results', { flights: response.data });
+  
+      //Remove duplicates based on carrier + flight number + departure time
+      const uniqueOffersMap = new Map();
+  
+      for (const offer of filteredFlights) {
+        const segments = offer.itineraries.flatMap(itinerary => itinerary.segments);
+        const flightKey = segments.map(seg => `${seg.carrierCode}${seg.flightNumber}-${seg.departure.at}`).join('|');
+  
+        if (!uniqueOffersMap.has(flightKey)) {
+          uniqueOffersMap.set(flightKey, offer);
+        }
+      }
+  
+      const uniqueOffers = Array.from(uniqueOffersMap.values());
+  
+      res.render('results', { flights: uniqueOffers });
     } catch (error) {
       console.error(error);
       res.send('Error fetching flights.');
