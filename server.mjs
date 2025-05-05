@@ -141,7 +141,7 @@ app.post('/search', isAuthenticated, async (req, res) => {
       await pool.query(`INSERT INTO userFlight (userId, flightId) VALUES (?, ?)`, [userId, flightId]);
     }
   
-    res.send('Flight saved successfully!');
+    res.redirect('/savedFlights');
   });
   
 
@@ -155,7 +155,7 @@ app.post('/deleteFlight', async (req, res) => {
     const flightId = req.body.flightId;
     let sql = `DELETE FROM userFlight WHERE flightId = ?`;
     await pool.query(sql, [flightId]); // Use pool.query directly
-    res.send('Flight deleted successfully!');
+    res.redirect('/savedFlights');
 });
 
 app.get('/login', (req,res) => {

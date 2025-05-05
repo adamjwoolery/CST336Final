@@ -34,6 +34,11 @@
             <p><strong>Travel Class:</strong> <%= flight.travelClass %></p>
             <p><strong>Price:</strong> <%= flight.price %> <%= flight.currency %></p>
             <p><strong>Flight Number:</strong> <%= flight.flightNumber %></p>
+
+            <form action="/deleteFlight" method="POST">
+              <input type="hidden" name="flightId" value="<%= flight.flightId %>">
+              <button type="submit" class="btn btn-success mt-2">Delete Flight</button>
+            </form>
           </div>
         </div>
       <% }) %>
@@ -42,7 +47,7 @@
     <% } %>
 
     <div class="text-center mt-4">
-      <a href="/" class="btn btn-primary">Search More Flights</a>
+      <a href="/findFlight" class="btn btn-primary">Search More Flights</a>
     </div>
   </div>
 
