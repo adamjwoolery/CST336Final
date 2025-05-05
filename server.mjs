@@ -222,9 +222,12 @@ app.get('/accounts', async(req, res) => {
 app.post('/deleteAccount',  async(req, res) => {
     let userId = req.body.userId;
     let sql = `DELETE FROM users WHERE userId = ?`;
+    let sql2 = `DELETE FROM userFlight WHERE userId = ?`;
     let sqlParams = [userId];
     const [rows] = await pool.query(sql, sqlParams);
+    const [rows2] = await pool.query(sql2, sqlParams);
     console.log(rows);
+    console.log(rows2);
     res.redirect("/accounts");
 });
   
