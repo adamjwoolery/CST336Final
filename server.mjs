@@ -186,6 +186,11 @@ app.get('/deleteAccount', isAdmin, async(req, res) => {
     res.redirect("/accounts");
 });
   
+////Added Brand NEWWWW!!!!!!////
+app.get('/login', (req, res) => {
+    res.render('login.ejs');
+});
+
 
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);
