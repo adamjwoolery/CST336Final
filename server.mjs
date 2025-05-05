@@ -213,14 +213,14 @@ app.get('/logout', isAuthenticated, (req, res) => {
     res.render('login.ejs')
  });
 
-app.get('/accounts', isAdmin, async(req, res) => {
+app.get('/accounts', async(req, res) => {
   let sql = `SELECT * FROM users`;
   const [users] = await pool.query(sql);
   res.render("accounts.ejs", { users });
 });
 
-app.get('/deleteAccount', isAdmin, async(req, res) => {
-    let userId = req.query.userId;
+app.post('/deleteAccount',  async(req, res) => {
+    let userId = req.body.userId;
     let sql = `DELETE FROM users WHERE userId = ?`;
     let sqlParams = [userId];
     const [rows] = await pool.query(sql, sqlParams);
