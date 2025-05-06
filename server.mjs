@@ -2,8 +2,10 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Amadeus from 'amadeus';
+import { Console } from 'console';
 import mysql from 'mysql2/promise';
 import session from 'express-session';
+
 
 const app = express();
 
@@ -230,7 +232,6 @@ app.post('/deleteAccount',  async(req, res) => {
     console.log(rows2);
     res.redirect("/accounts");
 });
-  
 
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);
