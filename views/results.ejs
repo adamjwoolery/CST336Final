@@ -7,55 +7,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+
+<body class="bg-light">
   <%- include('partials/header') %>
-  <div class="container py-5">
-    <h1 class="text-center mb-4">Flight Results</h1>
+
+  <div class="container my-5">
+    <h1 class="mb-4 text-center">Flight Search Results</h1>
 
     <% if (flights.length > 0) { %>
-      <% flights.forEach(flight => { %>
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title">Flight Details</h5>
-            <p><strong>Price:</strong> <%= flight.price.total %> <%= flight.price.currency %></p>
-            <p><strong>From:</strong> <%= flight.itineraries[0].segments[0].departure.iataCode %></p>
-            <p><strong>To:</strong> <%= flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode %></p>
-            <p><strong>Departure Time:</strong> 
-              <%= new Date(flight.itineraries[0].segments[0].departure.at).toLocaleString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: true 
-              }) %>
-            </p>
-            <p><strong>Arrival Time:</strong> 
-              <%= new Date(flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.at).toLocaleString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit', 
-                hour12: true 
-              }) %>
-            </p>
-            <p><strong>Flight Number:</strong> <%= flight.itineraries[0].segments[0].carrierCode %><%= flight.itineraries[0].segments[0].number %></p>
+      <div class="row g-4">
+        <% flights.forEach(flight => { %>
+          <div class="col-md-6">
+            <div class="card shadow-sm border-primary">
+              <div class="card-body">
 
-            <p><strong>Travel Class:</strong> <%= flight.travelerPricings[0].fareDetailsBySegment[0].cabin %></p>
-            <!-- Save Flight Button -->
-            <form action="/saveFlight" method="POST">
-              <input type="hidden" name="origin" value="<%= flight.itineraries[0].segments[0].departure.iataCode %>">
-              <input type="hidden" name="destination" value="<%= flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode %>">
-              <input type="hidden" name="date" value="<%= flight.itineraries[0].segments[0].departure.at %>">
-              <input type="hidden" name="returnDate" value="<%= typeof flight.itineraries[1] !== 'undefined' ? flight.itineraries[1].segments[0].departure.at : '' %>">
-              <input type="hidden" name="travelClass" value="<%= flight.travelerPricings[0].fareDetailsBySegment[0].cabin %>">
-              <input type="hidden" name="price" value="<%= flight.price.total %>">
-              <input type="hidden" name="currency" value="<%= flight.price.currency %>">
-              <input type="hidden" name="flightNumber" value="<%= flight.itineraries[0].segments[0].carrierCode %><%= flight.itineraries[0].segments[0].number%>">
-              <button type="submit" class="btn btn-success mt-2">Save Flight</button>
-            </form>
+                <h5 class="card-title text-primary">Price: <%= flight.price.total %> <small class="text-muted">(<%= flight.price.currency %>)</small></h5>
 
+                <% flight.itineraries.forEach((itinerary, itineraryIndex) => { %>
+                  <h6 class="mt-4"><%= itineraryIndex === 0 ? 'Departure Flight' : 'Return Flight' %></h6>
+                  <% itinerary.segments.forEach((segment, segmentIndex) => { 
+                    const departureTime = new Date(segment.departure.at);
+                    const arrivalTime = new Date(segment.arrival.at);
+                    const flightDuration = Math.floor((arrivalTime - departureTime) / (60 * 1000)); // minutes
+                  %>
+                    <div class="mb-3">
+                      <strong><%= segment.departure.iataCode %></strong> ➔ <strong><%= segment.arrival.iataCode %></strong><br>
+                      <small>
+                        <%= departureTime.toLocaleString() %> ➔ <%= arrivalTime.toLocaleString() %><br>
+                        Flight Time: <%= Math.floor(flightDuration / 60) %>h <%= flightDuration % 60 %>m<br>
+                        Airline: 
+                        <% segment.carrierCode && (function() { %>
+                          <img src="https://content.airhex.com/content/logos/airlines_<%= segment.carrierCode %>_50_50_s.png" alt="<%= segment.carrierCode %>" style="height:24px;">
+                          (<%= segment.carrierCode %>)
+                        <% })(); %>
+                        Flight Number: <%= segment.carrierCode %><%= segment.number %>
+                      </small>
+                    </div>
+
+                    <% 
+                      // Check if there is a layover after this segment
+                      if (segmentIndex < itinerary.segments.length - 1) {
+                        const layoverTime = Math.floor((new Date(itinerary.segments[segmentIndex + 1].departure.at) - arrivalTime) / (60 * 1000));
+                    %>
+                      <div class="alert alert-warning py-1 px-2">
+                        Layover at <strong><%= segment.arrival.iataCode %></strong>: <%= Math.floor(layoverTime / 60) %>h <%= layoverTime % 60 %>m
+                      </div>
+                    <% } %>
+
+                  <% }) %>
+                <% }) %>
+
+                <div class="mt-4">
+                  <strong>Seats left:</strong> <%= flight.numberOfBookableSeats %>
+                </div>
+
+                <form action="/saveFlight" method="POST">
+                  <input type="hidden" name="origin" value="<%= flight.itineraries[0].segments[0].departure.iataCode %>">
+                  <input type="hidden" name="destination" value="<%= flight.itineraries[0].segments[flight.itineraries[0].segments.length - 1].arrival.iataCode %>">
+                  <input type="hidden" name="date" value="<%= flight.itineraries[0].segments[0].departure.at %>">
+                  <input type="hidden" name="returnDate" value="<%= typeof flight.itineraries[1] !== 'undefined' ? flight.itineraries[1].segments[0].departure.at : '' %>">
+                  <input type="hidden" name="travelClass" value="<%= flight.travelerPricings[0].fareDetailsBySegment[0].cabin %>">
+                  <input type="hidden" name="price" value="<%= flight.price.total %>">
+                  <input type="hidden" name="currency" value="<%= flight.price.currency %>">
+                  <input type="hidden" name="flightNumber" value="<%= flight.itineraries[0].segments[0].carrierCode %><%= flight.itineraries[0].segments[0].number%>">
+                  <button type="submit" class="btn btn-outline-primary w-100 mt-3">Save Flight</button>
+                </form>
+
+              </div>
+            </div>
           </div>
         <% }) %>
       </div>
@@ -64,7 +83,6 @@
         No flights found.
       </div>
     <% } %>
-    
 
     <div class="text-center mt-5">
       <a href="/" class="btn btn-secondary">Search Again</a>
