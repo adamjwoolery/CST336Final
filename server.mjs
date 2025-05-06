@@ -81,7 +81,20 @@ app.post('/search', isAuthenticated, async (req, res) => {
       return firstSegment.departure.iataCode === origin &&
              lastSegment.arrival.iataCode === destination;
     });
-    res.render('results', { flights: filteredFlights, searchParams: req.body, isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated});
+    const uniqueOffersMap = new Map();
+  
+      for (const offer of filteredFlights) {
+        const segments = offer.itineraries.flatMap(itinerary => itinerary.segments);
+        const flightKey = segments.map(seg => `${seg.carrierCode}${seg.flightNumber}-${seg.departure.at}`).join('|');
+  
+        if (!uniqueOffersMap.has(flightKey)) {
+          uniqueOffersMap.set(flightKey, offer);
+        }
+      }
+  
+      const uniqueOffers = Array.from(uniqueOffersMap.values());
+  
+    res.render('results', { flights: uniqueOffers, searchParams: req.body, isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated});
 
     console.log('Request Body:', req.body);
     console.log('Filtered Data:', filteredFlights);
