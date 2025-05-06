@@ -254,6 +254,7 @@ app.post('/updateLogin', isAuthenticated, async (req, res) => {
     res.redirect('/home'); //whatever page is home here
 });
 
+
 app.listen(port, () => {
     console.log(`http://localhost:${port}`);
 });
