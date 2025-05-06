@@ -6,17 +6,19 @@
     <title>Document</title>
 </head>
 <body>
+    <%- include('partials/header') %>
     <h1>Login</h1>
 
     <form action="/login" method="POST">
         Username: <input type="text" name="username">
         Password: <input type="password" name="password">
         <br>
-        <input type="submit" name="login">
+        <input type="submit" name="login" value="Login">
     </form>
 
     <form action="/signUp" method="GET">
         <input type="submit" value="Sign Up">
     </form>
+    <%- include('partials/footer') %>
 </body>
 </html>

@@ -45,9 +45,10 @@ app.get('/home', (req, res) => {
 });
 
 
-app.get('/findFlight', (req, res) => {
+app.get('/findFlight', isAuthenticated, (req, res) => {
     res.render('findFlight.ejs');
 });
+
 //API KEY: UUAIGG4bE4MJMBbNqJ6vCck0awZk6UAl
 //API SECRET: YlXYGImY9zDO6HsA
 const amadeus = new Amadeus({
@@ -56,61 +57,97 @@ const amadeus = new Amadeus({
 });
 
 // Handle form submit
-app.post('/search', async (req, res) => {
-  const { origin, destination, date, returnDate, travelClass, maxPrice, currency, nonStop } = req.body;
+app.post('/search', isAuthenticated, async (req, res) => {
+    const { origin, destination, date, returnDate, travelClass, maxPrice, currency, nonStop } = req.body;
+  
+    try {
+      const response = await amadeus.shopping.flightOffersSearch.get({
+        originLocationCode: origin,
+        destinationLocationCode: destination,
+        departureDate: date,
+        ...(returnDate && { returnDate }),          // only add if user filled it
+        ...(travelClass && { travelClass }),        // travel class (ECONOMY, BUSINESS, etc.)
+        ...(maxPrice && { maxPrice }),              // max price limit
+        ...(currency && { currencyCode: currency }),// currency code
+        ...(nonStop && { nonStop: true }),           // checkbox sends "on" if checked
+        adults: 1,
+        max: 5
+      });
 
-  try {
-    const response = await amadeus.shopping.flightOffersSearch.get({
-      originLocationCode: origin,
-      destinationLocationCode: destination,
-      departureDate: date,
-      ...(returnDate && { returnDate }),
-      ...(travelClass && { travelClass }),
-      ...(maxPrice && { maxPrice }),
-      ...(currency && { currencyCode: currency }),
-      ...(nonStop && { nonStop: true }),
-      adults: 1,
-      max: 20
-    });
-    const filteredFlights = response.data.filter(flight => {
-      const segments = flight.itineraries[0].segments;
-      const firstSegment = segments[0];
-      const lastSegment = segments[segments.length - 1];
+      console.log(JSON.stringify(response.data, null, 2));
+      
+      const filteredFlights = response.data.filter(flight => {
+        const segments = flight.itineraries[0].segments;
+        const firstSegment = segments[0];
+        const lastSegment = segments[segments.length - 1];
+  
+        return firstSegment.departure.iataCode === origin &&
+               lastSegment.arrival.iataCode === destination;
+      });
+  
+      //Remove duplicates based on carrier + flight number + departure time
+      const uniqueOffersMap = new Map();
+  
+      for (const offer of filteredFlights) {
+        const segments = offer.itineraries.flatMap(itinerary => itinerary.segments);
+        const flightKey = segments.map(seg => `${seg.carrierCode}${seg.flightNumber}-${seg.departure.at}`).join('|');
+  
+        if (!uniqueOffersMap.has(flightKey)) {
+          uniqueOffersMap.set(flightKey, offer);
+        }
+      }
+  
+      const uniqueOffers = Array.from(uniqueOffersMap.values());
+  
+      res.render('results', { flights: uniqueOffers });
+    } catch (error) {
+      console.error(error);
+      res.send('Error fetching flights.');
+    }
+  });
 
-      return firstSegment.departure.iataCode === origin &&
-             lastSegment.arrival.iataCode === destination;
-    });
-    res.render('results', { flights: filteredFlights, searchParams: req.body });
-
-    console.log('Request Body:', req.body);
-    console.log('Filtered Data:', filteredFlights);
-  } catch (error) {
-    console.error(error);
-    res.send('Error fetching flights.');
-  }
-});
-
-app.post('/saveFlight', async (req, res) => {
-    const origin = req.body.origin;
-    const destination = req.body.destination;
-    const date = req.body.date;
-    const returnDate = req.body.returnDate;
-    const travelClass = req.body.travelClass;
-    const price = req.body.price;
-    const currency = req.body.currency;
-    const flightNumber = req.body.flightNumber;
+  app.post('/saveFlight', isAuthenticated, async (req, res) => {
+    const {
+      origin,
+      destination,
+      date,
+      returnDate,
+      travelClass,
+      price,
+      currency,
+      flightNumber
+    } = req.body;
     const userId = req.session.userId;
-    let sqlFilght = `INSERT INTO flights (origin, destination, date, returnDate, travelClass, price, currency, flightNumber) VALUES (?,?,?,?,?,?,?,?)`;
-    let paramsFlight = [origin, destination, date, returnDate, travelClass, price, currency, flightNumber];
-    await pool.query(sqlFilght, paramsFlight); // Use pool.query directly
-    let sql = `INSERT INTO userFlight VALUES (?,?)`;
-    let flightId = (await pool.query(`SELECT flightId FROM flights WHERE flightNumber = ?`, [flightNumber]))[0][0].flightId;
-    // console.log(flightId);
-    let params = [userId, flightId];
-    res.send('Flight saved successfully!');
-});
 
-app.get('/savedFlights', async (req, res) => {
+    let [existingFlights] = await pool.query(
+        `SELECT flightId, price FROM flights WHERE flightNumber = ? AND date = ? AND price = ?`,
+        [flightNumber, date, price]
+     );
+    let flightId;
+
+    if (existingFlights.length > 0) {
+      flightId = existingFlights[0].flightId;
+    } else {
+      let result = await pool.query(
+        `INSERT INTO flights (origin, destination, date, returnDate, travelClass, price, currency, flightNumber)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [origin, destination, date, returnDate, travelClass, price, currency, flightNumber]
+      );
+      flightId = result[0].insertId;
+    }
+    let [existingLink] = await pool.query(
+      `SELECT * FROM userFlight WHERE userId = ? AND flightId = ?`,
+      [userId, flightId]
+    );
+    if (existingLink.length === 0) {
+      await pool.query(`INSERT INTO userFlight (userId, flightId) VALUES (?, ?)`, [userId, flightId]);
+    }
+  
+    res.redirect('/savedFlights');
+  });
+  
+
+app.get('/savedFlights', isAuthenticated, async (req, res) => {
     let sql = `SELECT * FROM flights NATURAL JOIN userFlight WHERE flightId = flightId`;
     const [flights] = await pool.query(sql); // Use pool.query directly
     res.render('savedFlights.ejs', { flights });
@@ -120,7 +157,11 @@ app.post('/deleteFlight', async (req, res) => {
     const flightId = req.body.flightId;
     let sql = `DELETE FROM userFlight WHERE flightId = ?`;
     await pool.query(sql, [flightId]); // Use pool.query directly
-    res.send('Flight deleted successfully!');
+    res.redirect('/savedFlights');
+});
+
+app.get('/login', (req,res) => {
+    res.render('login.ejs')
 });
 
 app.post('/login', async (req, res) => {
@@ -139,11 +180,17 @@ app.post('/login', async (req, res) => {
     if (password == db_password) {
         req.session.userAuthenticated = true;
         req.session.fullName = rows[0].firstName + " " + rows[0].lastName;
+        req.session.userId = rows[0].userId;
         res.redirect('/home'); //whatever page is home here
     } else {
         res.render('login.ejs', {"error":"Wrong credentials!"})
     }
  });
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.render('login.ejs')
+});
 
 app.get('/signUp', async(req, res) => {
     res.render('signUp.ejs');  
@@ -152,39 +199,37 @@ app.get('/signUp', async(req, res) => {
 app.post('/signUp', async(req, res) => {
     let username = req.body.username;
     let password = req.body.password;
-    let sql = `INSERT INTO users (username, password) VALUES (?, ?)`;
-    let params = [username, password];
-    await pool.query(sql, params);
-    res.render('login.ejs', {"error":"Account created!"});  
+    if (username.length > 4 && password.length > 4){
+        let sql = `INSERT INTO users (username, password) VALUES (?, ?)`;
+        let params = [username, password];
+        await pool.query(sql, params);
+        res.render('login.ejs');
+      }
+      else{
+        res.render('signUp.ejs');
+      }
 });
-
 
 app.get('/logout', isAuthenticated, (req, res) => {
     req.session.destroy();
     res.render('login.ejs')
  });
 
-app.post('/register', async (req, res) => {
-  let username = req.body.username;
-  let password = req.body.password;
-  let sql = `INSERT INTO users (username, password) VALUES (?, ?)`;
-  let params = [username, password];
-  await pool.query(sql, params);
-  res.render('login.ejs');
-});
-
-app.get('/accounts', isAdmin, async(req, res) => {
+app.get('/accounts', async(req, res) => {
   let sql = `SELECT * FROM users`;
   const [users] = await pool.query(sql);
   res.render("accounts.ejs", { users });
 });
 
-app.get('/deleteAccount', isAdmin, async(req, res) => {
-    let userId = req.query.userId;
+app.post('/deleteAccount',  async(req, res) => {
+    let userId = req.body.userId;
     let sql = `DELETE FROM users WHERE userId = ?`;
+    let sql2 = `DELETE FROM userFlight WHERE userId = ?`;
     let sqlParams = [userId];
     const [rows] = await pool.query(sql, sqlParams);
+    const [rows2] = await pool.query(sql2, sqlParams);
     console.log(rows);
+    console.log(rows2);
     res.redirect("/accounts");
 });
 
