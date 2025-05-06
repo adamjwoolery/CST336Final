@@ -8,23 +8,23 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="/findFlight">FLIGHT</a>
+                        <a class="nav-link"   href="/findFlight">FLIGHT</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/savedFlights">TRACKED</a>
+                        <a class="nav-link"   href="/savedFlights">TRACKED</a>
                     </li>
                     <% if (isAdmin) { %>
                         <li class="nav-item">
-                            <a href="/accounts" class="btn btn-primary">Manage Accounts</a>
+                            <a class="nav-link" href="/accounts"  >Manage Accounts</a>
                         </li>
                     <% } %>
                     <% if (isAuthenticated) { %>
                         <li class="nav-item">
-                            <a href="/updateLogin" class="btn btn-primary">Update Login Info</a>
+                            <a class="nav-link" href="/updateLogin"  >Update Login Info</a>
                         </li>
                     <% } %>
                     <li class="nav-item">
-                        <a class="nav-link" href="/logout">LOGOUT</a>
+                        <a class="nav-link"   href="/logout">LOGOUT</a>
                     </li>
                 </ul>
             </div>
