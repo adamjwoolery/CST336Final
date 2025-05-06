@@ -11,39 +11,45 @@
     <h1 class="text-center mb-4">Saved Flights</h1>
 
     <% if (flights.length > 0) { %>
-      <% flights.forEach(flight => { %>
-        <div class="card mb-4">
-          <div class="card-body">
-            <h5 class="card-title">Flight Details</h5>
-            <p><strong>From:</strong> <%= flight.origin %></p>
-            <p><strong>To:</strong> <%= flight.destination %></p>
-            <p><strong>Departure Date:</strong> 
-              <%= new Date(flight.date).toLocaleString('en-US', {
-                year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit', hour12: true
-              }) %>
-            </p>
-            <% if (flight.returnDate) { %>
-              <p><strong>Return Date:</strong> 
-                <%= new Date(flight.returnDate).toLocaleString('en-US', {
-                  year: 'numeric', month: 'long', day: 'numeric',
-                  hour: '2-digit', minute: '2-digit', hour12: true
-                }) %>
-              </p>
-            <% } %>
-            <p><strong>Travel Class:</strong> <%= flight.travelClass %></p>
-            <p><strong>Price:</strong> <%= flight.price %> <%= flight.currency %></p>
-            <p><strong>Flight Number:</strong> <%= flight.flightNumber %></p>
+      <div class="row g-4">
+        <% flights.forEach(flight => { %>
+          <div class="col-md-6">
+            <div class="card shadow-sm border-primary">
+              <div class="card-body">
+                <h5 class="card-title text-primary">Flight Details</h5>
+                <p><strong>From:</strong> <%= flight.origin %></p>
+                <p><strong>To:</strong> <%= flight.destination %></p>
+                <p><strong>Departure Date:</strong> 
+                  <%= new Date(flight.date).toLocaleString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: true
+                  }) %>
+                </p>
+                <% if (flight.returnDate) { %>
+                  <p><strong>Return Date:</strong> 
+                    <%= new Date(flight.returnDate).toLocaleString('en-US', {
+                      year: 'numeric', month: 'long', day: 'numeric',
+                      hour: '2-digit', minute: '2-digit', hour12: true
+                    }) %>
+                  </p>
+                <% } %>
+                <p><strong>Travel Class:</strong> <%= flight.travelClass %></p>
+                <p><strong>Price:</strong> <%= flight.price %> <%= flight.currency %></p>
+                <p><strong>Flight Number:</strong> <%= flight.flightNumber %></p>
 
-            <form action="/deleteFlight" method="POST">
-              <input type="hidden" name="flightId" value="<%= flight.flightId %>">
-              <button type="submit" class="btn btn-success mt-2">Delete Flight</button>
-            </form>
+                <form action="/deleteFlight" method="POST">
+                  <input type="hidden" name="flightId" value="<%= flight.flightId %>">
+                  <button type="submit" class="btn btn-outline-danger w-100 mt-3">Delete Flight</button>
+                </form>
+              </div>
+            </div>
           </div>
-        </div>
-      <% }) %>
+        <% }) %>
+      </div>
     <% } else { %>
-      <p class="text-center">You have no saved flights.</p>
+      <div class="alert alert-warning text-center" role="alert">
+        You have no saved flights.
+      </div>
     <% } %>
 
     <div class="text-center mt-4">
