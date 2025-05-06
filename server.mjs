@@ -40,13 +40,13 @@ app.get('/', (req, res) => {
 });
 
 app.get('/home', (req, res) => {
-    res.render('index', { title: 'HOME', message: 'THIS IS HOME PAGE OF "336Final"', isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated });
+    res.render('index', { title: 'HOME', message: 'THIS IS HOME PAGE OF "336Final"', isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated, currentPath: '/home' });
     // res.render('login.ejs', { title: 'Login', message: 'Login to your account' });
 });
 
 
 app.get('/findFlight', isAuthenticated, (req, res) => {
-    res.render('findFlight.ejs', { isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated });
+    res.render('findFlight.ejs', { isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated, currentPath: '/findFlight' });
 });
 
 //API KEY: UUAIGG4bE4MJMBbNqJ6vCck0awZk6UAl
@@ -94,7 +94,7 @@ app.post('/search', isAuthenticated, async (req, res) => {
   
       const uniqueOffers = Array.from(uniqueOffersMap.values());
   
-    res.render('results', { flights: uniqueOffers, searchParams: req.body, isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated});
+    res.render('results', { flights: uniqueOffers, searchParams: req.body, isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated, currentPath: '/findFlight' });
 
     console.log('Request Body:', req.body);
     console.log('Filtered Data:', filteredFlights);
@@ -148,7 +148,7 @@ app.post('/search', isAuthenticated, async (req, res) => {
 app.get('/savedFlights', isAuthenticated, async (req, res) => {
     let sql = `SELECT * FROM flights NATURAL JOIN userFlight WHERE flightId = flightId`;
     const [flights] = await pool.query(sql); // Use pool.query directly
-    res.render('savedFlights.ejs', { flights, isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated });
+    res.render('savedFlights.ejs', { flights, isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated, currentPath: '/savedFlights' });
 });
 
 app.post('/deleteFlight', async (req, res) => {
@@ -229,7 +229,7 @@ app.post('/register', async (req, res) => {
 app.get('/accounts', isAdmin, async (req, res) => {
     let sql = `SELECT * FROM users`;
     const [users] = await pool.query(sql);
-    res.render("accounts.ejs", { users, isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated });
+    res.render("accounts.ejs", { users, isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated, currentPath: '/accounts' });
 });
 
 app.post('/deleteAccount', isAdmin, async (req, res) => {
@@ -242,7 +242,7 @@ app.post('/deleteAccount', isAdmin, async (req, res) => {
 app.get('/updateLogin', isAuthenticated, async (req, res) => {
     let sql = `SELECT * FROM users WHERE userId = ?`;
     const [rows] = await pool.query(sql, [req.session.userId]);
-    res.render('updateLogin.ejs', { user: rows[0], isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated });
+    res.render('updateLogin.ejs', { user: rows[0], isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated, currentPath: '/updateLogin' });
 });
 
 app.post('/updateLogin', isAuthenticated, async (req, res) => {
