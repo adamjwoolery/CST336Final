@@ -19,3 +19,15 @@ footer {
     background: #404346;
     margin-top: 10PX;
 }
+
+.btn {  
+    background-color: silver;
+}
+
+.form-label {
+    background-color: gold;
+}
+
+#icon {
+    text-align: center;
+}

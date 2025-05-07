@@ -35,12 +35,12 @@ app.use(session({
 }))
 
 app.get('/', (req, res) => {
-    // res.render('index', { title: 'HOME', message: 'THIS IS HOME PAGE OF "336Final"' });
+    // res.render('index', { title: 'HOME', message: CSUMB Flight Reservation });
     res.render('login.ejs', { title: 'Login', message: 'Login to your account' });
 });
 
 app.get('/home', (req, res) => {
-    res.render('index', { title: 'HOME', message: 'THIS IS HOME PAGE OF "336Final"', isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated, currentPath: '/home' });
+    res.render('index', { title: 'HOME', message: 'CSUMB Flight Reservation', isAdmin: req.session.isAdmin, isAuthenticated: req.session.userAuthenticated, currentPath: '/home' });
     // res.render('login.ejs', { title: 'Login', message: 'Login to your account' });
 });
 
